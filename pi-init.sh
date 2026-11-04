@@ -56,7 +56,7 @@ const config = {
       name: "Typhoon",
       baseUrl: "https://api.opentyphoon.ai/v1",
       api: "openai-completions",
-      apiKey,/
+      apiKey,
       models: [
         {
           id: "typhoon-v2.5-30b-a3b-instruct",
