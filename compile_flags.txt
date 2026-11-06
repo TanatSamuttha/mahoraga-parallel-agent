@@ -1,0 +1,4 @@
+-I.
+-Isrc
+-Isrc/core
+-Isrc/entrypoint

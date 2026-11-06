@@ -1,3 +1,3 @@
-cd ./pi
+cd ./vendor/pi
 
 npm run build
