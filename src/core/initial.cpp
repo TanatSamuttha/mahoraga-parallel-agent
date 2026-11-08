@@ -1,10 +1,11 @@
 #include "agent.hpp"
+#include "iostream"
 
 bool Agent::initial(size_t subAgents)
 {
     agents.reserve(subAgents);
 
-    for (int i = 0; i < subAgents; ++i)
+    for (size_t i = 0; i < subAgents; ++i)
     {
         int toPi[2], fromPi[2];
 
@@ -50,16 +51,19 @@ bool Agent::initial(size_t subAgents)
             close(toPi[0]);
             close(fromPi[1]);
 
-            execl("./pi-init.sh", "pi-init.sh", "--mode", "rpc", (char*)nullptr);
+            execl("/bin/bash", "bash", "./pi-init.sh", "--mode", "rpc", (char*)nullptr);
 
+            std::cout << "Exit\n";
             _exit(127);
         }
 
         close(toPi[0]);
         close(fromPi[1]);
 
-        agents.push_back({pid, toPi[1], fromPi[0], false});
+        agents.push_back({i, pid, toPi[1], fromPi[0]});
     }
+
+    jsonCarries.resize(agents.size());
 
     return true;
 }

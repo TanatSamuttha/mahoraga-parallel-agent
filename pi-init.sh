@@ -4,7 +4,24 @@ set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
-# รองรับทั้งกรณีวางสคริปต์ไว้ใน pi/ และโฟลเดอร์แม่
+# Load .env from the script directory
+ENV_FILE="$SCRIPT_DIR/.env"
+
+if [[ ! -f "$ENV_FILE" ]]; then
+    echo "Error: cannot find .env at $ENV_FILE" >&2
+    exit 1
+fi
+
+source "$ENV_FILE"
+
+if [[ -z "${TYPHOON_API_KEY:-}" ]]; then
+    echo "Error: TYPHOON_API_KEY is missing in .env" >&2
+    exit 1
+fi
+
+export TYPHOON_API_KEY
+
+# Locate Pi test script
 if [[ -f "$SCRIPT_DIR/pi-test.sh" ]]; then
     ROOT="$SCRIPT_DIR"
 elif [[ -f "$SCRIPT_DIR/pi/pi-test.sh" ]]; then
@@ -17,16 +34,7 @@ fi
 PI_TEST="$ROOT/pi-test.sh"
 MODEL="typhoon-v2.5-30b-a3b-instruct"
 
-
-read -rsp "Typhoon API key: " TYPHOON_API_KEY
-printf '\n'
-
-if [[ -z "$TYPHOON_API_KEY" ]]; then
-    echo "Error: API key cannot be empty." >&2
-    exit 1
-fi
-export TYPHOON_API_KEY
-
+# Create temporary Pi configuration directory
 umask 077
 TEMP_AGENT_DIR="$(mktemp -d "$ROOT/.pi-runtime.XXXXXX")"
 
@@ -37,12 +45,12 @@ cleanup() {
     unset TYPHOON_API_KEY
     exit "$status"
 }
+
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-# สร้าง config โดยอ่าน API key จาก environment
-# ไม่เขียน key ลงในสคริปต์
+# Generate temporary model configuration
 node - "$TEMP_AGENT_DIR/models.json" <<'NODE'
 const fs = require("node:fs");
 
@@ -74,6 +82,7 @@ NODE
 
 export PI_CODING_AGENT_DIR="$TEMP_AGENT_DIR"
 
-echo "Launching Pi with temporary Typhoon configuration."
+echo "Launching Pi with temporary Typhoon configuration." >&2
+
 cd "$ROOT"
 bash "$PI_TEST" --no-session --model "$MODEL" "$@"
