@@ -3,6 +3,13 @@
 
 bool Agent::initial(size_t subAgents)
 {
+    if (status != 0)
+    {
+        std::cerr << "Pi dependency setup failed\n";
+        return false;
+    }
+
+    std::cout << "Done\n";
     agents.reserve(subAgents);
 
     for (size_t i = 0; i < subAgents; ++i)
@@ -51,7 +58,7 @@ bool Agent::initial(size_t subAgents)
             close(toPi[0]);
             close(fromPi[1]);
 
-            execl("/bin/bash", "bash", "./pi-init.sh", "--mode", "rpc", (char*)nullptr);
+            execl("/bin/bash", "bash", "./src/setup/pi-init.sh", "--mode", "rpc", (char*)nullptr);
 
             std::cout << "Exit\n";
             _exit(127);

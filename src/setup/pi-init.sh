@@ -1,11 +1,11 @@
-
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 
-# Load .env from the script directory
-ENV_FILE="$SCRIPT_DIR/.env"
+# Load .env from the project root
+ENV_FILE="$PROJECT_ROOT/.env"
 
 if [[ ! -f "$ENV_FILE" ]]; then
     echo "Error: cannot find .env at $ENV_FILE" >&2
@@ -22,12 +22,10 @@ fi
 export TYPHOON_API_KEY
 
 # Locate Pi test script
-if [[ -f "$SCRIPT_DIR/pi-test.sh" ]]; then
-    ROOT="$SCRIPT_DIR"
-elif [[ -f "$SCRIPT_DIR/pi/pi-test.sh" ]]; then
-    ROOT="$SCRIPT_DIR/pi"
-else
-    echo "Error: cannot find pi-test.sh" >&2
+ROOT="$PROJECT_ROOT/vendor/pi"
+
+if [[ ! -f "$ROOT/pi-test.sh" ]]; then
+    echo "Error: cannot find pi-test.sh at $ROOT/pi-test.sh" >&2
     exit 1
 fi
 
@@ -58,25 +56,25 @@ const file = process.argv[2];
 const apiKey = process.env.TYPHOON_API_KEY;
 
 const config = {
-  "$schema": "https://pi.dev/schemas/models.schema.json",
-  providers: {
-    typhoon: {
-      name: "Typhoon",
-      baseUrl: "https://api.opentyphoon.ai/v1",
-      api: "openai-completions",
-      apiKey,
-      models: [
-        {
-          id: "typhoon-v2.5-30b-a3b-instruct",
-          name: "Typhoon v2.5 30B A3B Instruct"
+    "$schema": "https://pi.dev/schemas/models.schema.json",
+    providers: {
+        typhoon: {
+            name: "Typhoon",
+            baseUrl: "https://api.opentyphoon.ai/v1",
+            api: "openai-completions",
+            apiKey,
+            models: [
+                {
+                    id: "typhoon-v2.5-30b-a3b-instruct",
+                    name: "Typhoon v2.5 30B A3B Instruct"
+                }
+            ]
         }
-      ]
     }
-  }
 };
 
 fs.writeFileSync(file, JSON.stringify(config, null, 2) + "\n", {
-  mode: 0o600
+    mode: 0o600
 });
 NODE
 
