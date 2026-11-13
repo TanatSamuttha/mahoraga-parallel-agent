@@ -3,13 +3,6 @@
 
 bool Agent::initial(size_t subAgents)
 {
-    if (status != 0)
-    {
-        std::cerr << "Pi dependency setup failed\n";
-        return false;
-    }
-
-    std::cout << "Done\n";
     agents.reserve(subAgents);
 
     for (size_t i = 0; i < subAgents; ++i)
